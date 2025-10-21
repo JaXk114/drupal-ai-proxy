@@ -10,26 +10,41 @@ const MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
 app.post("/chat", async (req, res) => {
   try {
     const prompt = req.body.prompt || "";
+
     const r = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${TOKEN}`,
-        "Content-Type": "application/json"
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ inputs: prompt })
+      body: JSON.stringify({ inputs: prompt }),
     });
 
-    const data = await r.text();
+    const text = await r.text();
+    let outputText = "";
 
-    // ✅ Always return valid JSON
+    // Try to parse Hugging Face response safely
     try {
-      const parsed = JSON.parse(data);
-      res.json(parsed);
+      const parsed = JSON.parse(text);
+
+      if (Array.isArray(parsed) && parsed[0]?.generated_text) {
+        outputText = parsed[0].generated_text;
+      } else if (parsed?.generated_text) {
+        outputText = parsed.generated_text;
+      } else if (parsed?.[0]?.[0]?.generated_text) {
+        outputText = parsed[0][0].generated_text;
+      } else {
+        // fallback: stringify whatever we got
+        outputText = JSON.stringify(parsed);
+      }
     } catch {
-      res.json({ output: data });
+      // fallback: raw text
+      outputText = text;
     }
+
+    res.json({ reply: outputText });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ reply: "Error: " + err.message });
   }
 });
 
