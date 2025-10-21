@@ -4,7 +4,6 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
-// your Hugging Face token and model
 const TOKEN = process.env.HF_TOKEN;
 const MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
 
@@ -19,8 +18,16 @@ app.post("/chat", async (req, res) => {
       },
       body: JSON.stringify({ inputs: prompt })
     });
+
     const data = await r.text();
-    res.type("application/json").send(data);
+
+    // ✅ Always return valid JSON
+    try {
+      const parsed = JSON.parse(data);
+      res.json(parsed);
+    } catch {
+      res.json({ output: data });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
