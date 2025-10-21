@@ -10,7 +10,7 @@ const MODEL = "distilgpt2"; // ✅ lightweight and always active
 app.post("/chat", async (req, res) => {
   try {
     const prompt = req.body.prompt || "";
-    const r = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
+    const r = await fetch(`https://huggingface.co/api/models/${MODEL}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${TOKEN}`,
