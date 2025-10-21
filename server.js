@@ -21,6 +21,9 @@ const response = await fetch(`https://huggingface.co/api/inference/models/${MODE
       body: JSON.stringify({ inputs: prompt }),
     });
 
+    console.log("Response status:", response.status);
+
+
     const text = await response.text();
 
     let output;
