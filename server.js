@@ -5,7 +5,9 @@ const app = express();
 app.use(express.json());
 
 const TOKEN = process.env.HF_TOKEN;
-const MODEL = "HuggingFaceH4/zephyr-7b-beta";
+const MODEL = "tiiuae/falcon-7b-instruct";
+
+
 
 
 app.post("/chat", async (req, res) => {
