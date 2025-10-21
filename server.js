@@ -5,16 +5,13 @@ const app = express();
 app.use(express.json());
 
 const TOKEN = process.env.HF_TOKEN;
-const MODEL = "tiiuae/falcon-7b-instruct";
-
-
-
+const MODEL = "gpt2"; // public model that always works
 
 app.post("/chat", async (req, res) => {
   try {
     const prompt = req.body.prompt || "";
 
-    const r = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
+    const response = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${TOKEN}`,
@@ -23,29 +20,20 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({ inputs: prompt }),
     });
 
-    const text = await r.text();
-    let outputText = "";
+    const text = await response.text();
 
-    // Try to parse Hugging Face response safely
+    let output;
     try {
       const parsed = JSON.parse(text);
-
-      if (Array.isArray(parsed) && parsed[0]?.generated_text) {
-        outputText = parsed[0].generated_text;
-      } else if (parsed?.generated_text) {
-        outputText = parsed.generated_text;
-      } else if (parsed?.[0]?.[0]?.generated_text) {
-        outputText = parsed[0][0].generated_text;
-      } else {
-        // fallback: stringify whatever we got
-        outputText = JSON.stringify(parsed);
-      }
+      output =
+        parsed?.[0]?.generated_text ||
+        parsed?.generated_text ||
+        JSON.stringify(parsed);
     } catch {
-      // fallback: raw text
-      outputText = text;
+      output = text;
     }
 
-    res.json({ reply: outputText });
+    res.json({ reply: output });
   } catch (err) {
     res.status(500).json({ reply: "Error: " + err.message });
   }
