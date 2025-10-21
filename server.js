@@ -5,26 +5,23 @@ const app = express();
 app.use(express.json());
 
 const TOKEN = process.env.HF_TOKEN;
-const MODEL = "gpt2"; // public model that always works
+const MODEL = "distilgpt2"; // ✅ lightweight and always active
 
 app.post("/chat", async (req, res) => {
   try {
     const prompt = req.body.prompt || "";
-
-const response = await fetch(`https://huggingface.co/api/inference/models/${MODEL}`, {
-
+    const r = await fetch(`https://api-inference.huggingface.co/models/${MODEL}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${TOKEN}`,
         "Content-Type": "application/json",
+        "User-Agent": "drupal-ai-proxy/1.0"
       },
       body: JSON.stringify({ inputs: prompt }),
     });
 
-    console.log("Response status:", response.status);
-
-
-    const text = await response.text();
+    const text = await r.text();
+    console.log("Response status:", r.status);
 
     let output;
     try {
